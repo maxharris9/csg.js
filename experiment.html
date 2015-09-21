@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="lightgl.js"></script>
+    <script src="csg.js"></script>
+    <script src="viewer.js"></script>
+    <style>
+      body {
+        font: 14px/20px 'Helvetica Neue Light', HelveticaNeue-Light, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        margin: 0 auto;
+        padding: 0px 0px 0px 0px;
+        align: center;
+      }
+      pre, code, textarea {
+        font: 12px/20px Monaco, monospace;
+        border: 0px;
+        border-radius: 0px;
+        padding: 0px;
+      }
+      pre, textarea {
+        padding: 0px;
+        width: 100%;
+      }
+      textarea {
+        height: 200px;
+      }
+      textarea:focus {
+        outline: none;
+      }
+      canvas { cursor: move; }
+    </style>
+  </head>
+  <body>
+    <div id="0" class="viewer" style="background-position:-1px -1px;"></div>
+    <p id="error"></p>
+    <textarea id="tryit">
+  var a = CSG.cube();
+  var b = CSG.cube({ center: [-0.25, -0.25, -0.25] });
+
+
+  var center = [1.25, 0.5, -0.5];
+  var c = CSG.sphere({ center: center, radius: 0.40, slices: 40, stacks: 40 });
+  var cprime = CSG.cube({ center: center, radius: 0.40 });
+
+a.setColor(0.9, 0.9, 0.9);
+b.setColor(0.9, 0.9, 0.9);
+c.setColor(0.9, 0.9, 0.9);
+
+//  a.setColor(0.2, 0.2, 0.3);
+//  b.setColor(0, 0.5, 1);
+//  c.setColor(0.8, 0.2, 0.2);
+//  c.setColor(0.2, 0.8, 0.2);
+
+  var x = cprime.intersect(a.subtract(c));
+  var y = a.subtract(b).subtract(cprime).union(x);
+
+  console.log(y);
+  return y;
+
+    </textarea>
+    <script>
+      var tryit = document.getElementById('tryit');
+      var timeout = null;
+      var viewer = new Viewer(new CSG(), 800, 600, 6);
+      addViewer(viewer);
+      function rebuild() {
+        var error = document.getElementById('error');
+        try {
+          var solid = new Function(tryit.value)();
+          error.innerHTML = '';
+        } catch (e) {
+          error.innerHTML = ' <code> Error:' + e.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</code>';
+        }
+        viewer.mesh = solid.toMesh();
+        viewer.gl.ondraw();
+      }
+      tryit.onkeydown = function() {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(rebuild, 250);
+      };
+      rebuild();
+    </script>
+  </body>
+</html>
